@@ -1,0 +1,14 @@
+{
+	"Targets": [
+		{
+			"Name": "pipes",
+			"Path": "..\\Source\\pipes.Target.cs",
+			"Type": "Game"
+		},
+		{
+			"Name": "pipesEditor",
+			"Path": "..\\Source\\pipesEditor.Target.cs",
+			"Type": "Editor"
+		}
+	]
+}

@@ -1,0 +1,14 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "f:\\luka\\faks\\nwp\\rad\\pipes\\source\\pipes\\pipes.cpp",
+        "ProvidedModule": "",
+        "PCH": "f:\\luka\\faks\\nwp\\rad\\pipes\\intermediate\\build\\win64\\x64\\pipeseditor\\development\\engine\\sharedpch.engine.cpp20.h.pch",
+        "Includes": [
+            "f:\\luka\\faks\\nwp\\rad\\pipes\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\pipes\\definitions.pipes.h",
+            "f:\\luka\\faks\\nwp\\rad\\pipes\\source\\pipes\\pipes.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}
