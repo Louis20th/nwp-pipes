@@ -18,94 +18,25 @@ AGameLevelMode::AGameLevelMode()
 }
 
 bool AGameLevelMode::handleNewState() {
-	bool status(false);
 	UE_LOG(LogTemp, Error, TEXT("Handling game state"));
+	bool status(false);
 	switch (mCurrentState)
 	{
 	case GameState::mainMenu: {
 		/// reset game session
 		/// level generator generates buffer if necessary
 		/// display mainMenu
-		/// 
-		UE_LOG(LogTemp, Error, TEXT("Case(GameState::mainMenu"));
-		if (IsValid(mMainMenuWidgetClass))
-		{
-			UE_LOG(LogTemp, Error, TEXT("mMainMenuWidgetClass not nullptr"));
-			mMainMenuWidget = CreateWidget<UMainMenuWidget>(GetWorld(), mMainMenuWidgetClass);
-			if (mMainMenuWidget)
-			{
-				mMainMenuWidget->setOnStartClickedCallback([this]() {
-					setGameState(GameState::inGame);
-					});
-				mMainMenuWidget->setOnQuitClickedCallback([this]() {
-					UKismetSystemLibrary::QuitGame(GetWorld(), UGameplayStatics::GetPlayerController(GetWorld(), 0), EQuitPreference::Type::Quit, false);
-					});
-
-				UE_LOG(LogTemp, Error, TEXT("mMainMenuWidget not nullptr"));
-				mMainMenuWidget->AddToViewport(1);
-
-				APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-				if (PlayerController != nullptr)
-				{
-					UE_LOG(LogTemp, Error, TEXT("PlayerController not nullptr"));
-					FInputModeUIOnly InputModeData;
-					InputModeData.SetWidgetToFocus(mMainMenuWidget->TakeWidget());
-					PlayerController->SetInputMode(InputModeData);
-					PlayerController->bShowMouseCursor = true;
-				}
-			}
-			else {
-				UE_LOG(LogTemp, Error, TEXT("Main menu widget not created"));
-			}
-		}
-		else {
-			UE_LOG(LogTemp, Error, TEXT("mMainMenuWidgetClass is nullptr"));
-		}
-
-		status = true;
+ 
+		status = showMainMenu();
 		break;
 	}
 	case GameState::inGame: {
-		UE_LOG(LogTemp, Error, TEXT("case core::GameState::inGame:"));
 		/// start session
 		/// hide mainMenu
 		/// spawn gameBoard
 		/// set level
 
-		if (mMainMenuWidget) {
-			mMainMenuWidget->RemoveFromParent();
-		}
-		if (!mSpawnedBoard) {
-			UE_LOG(LogTemp, Error, TEXT("Spawned board is nullptr"));
-			return;
-		}
-
-		FVector Location(0.0f, 0.0f, 0.0f);
-		FRotator Rotation(0.0f, 0.0f, 0.0f);
-		FActorSpawnParameters SpawnInfo;
-		auto boardActor = GetWorld()->SpawnActor<AGameBoardActor>(mSpawnedBoard->StaticClass(), Location, Rotation);
-		if (!boardActor) {
-			UE_LOG(LogTemp, Error, TEXT("Tilemap not loaded"));
-		}
-
-		boardActor->init(2, 2);
-		boardActor->setDemoState();
-
-		FVector CameraLocation(15.0f, 50.0f, -15.0f);
-		FRotator CameraRotation(0.0f, 270.0f, 0.0f); // Y, Z, X for some reason
-		auto camera = GetWorld()->SpawnActor<ACameraActor>(CameraLocation, CameraRotation);
-		auto cameraComp = camera->GetCameraComponent();
-		cameraComp->ProjectionMode = ECameraProjectionMode::Orthographic;
-		cameraComp->SetOrthoWidth(250);
-
-		auto controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-		if (controller) {
-			if (camera->HasActiveCameraComponent()) {
-				UE_LOG(LogTemp, Error, TEXT("BOARD HAS ACTIVE CAMERA COMP"));
-				controller->SetViewTarget(camera);
-			}
-		}
-		status = true;
+		status = spawnGameBoard();
 		break;
 	}
 	case GameState::pauseMenu: {
@@ -123,6 +54,88 @@ bool AGameLevelMode::handleNewState() {
 	default:
 		break;
 	}
+	return status;
+}
+
+bool AGameLevelMode::showMainMenu()
+{
+	bool status(false);
+
+	if (IsValid(mMainMenuWidgetClass))
+	{
+		mMainMenuWidget = CreateWidget<UMainMenuWidget>(GetWorld(), mMainMenuWidgetClass);
+		if (mMainMenuWidget)
+		{
+			mMainMenuWidget->setOnStartClickedCallback([this]() {
+				setGameState(GameState::inGame);
+				});
+			mMainMenuWidget->setOnQuitClickedCallback([this]() {
+				UKismetSystemLibrary::QuitGame(GetWorld(), UGameplayStatics::GetPlayerController(GetWorld(), 0), EQuitPreference::Type::Quit, false);
+				});
+
+			mMainMenuWidget->AddToViewport(1);
+
+			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			if (PlayerController)
+			{
+				FInputModeUIOnly InputModeData;
+				InputModeData.SetWidgetToFocus(mMainMenuWidget->TakeWidget());
+				PlayerController->SetInputMode(InputModeData);
+				PlayerController->bShowMouseCursor = true;
+
+				status = true;
+			}
+		}
+		else {
+			UE_LOG(LogTemp, Error, TEXT("Main menu widget not created"));
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("mMainMenuWidgetClass is nullptr"));
+	}
+
+	return status;
+}
+
+bool AGameLevelMode::spawnGameBoard()
+{
+	bool status(false);
+	if (mMainMenuWidget) {
+		mMainMenuWidget->RemoveFromParent();
+	}
+	if (!mSpawnedBoard) {
+		UE_LOG(LogTemp, Error, TEXT("Spawned board is nullptr"));
+		return status;
+	}
+
+	FVector Location(0.0f, 0.0f, 0.0f);
+	FRotator Rotation(0.0f, 0.0f, 0.0f);
+	FActorSpawnParameters SpawnInfo;
+	auto boardActor = GetWorld()->SpawnActor<AGameBoardActor>(mSpawnedBoard->StaticClass(), Location, Rotation);
+	if (!boardActor) {
+		UE_LOG(LogTemp, Error, TEXT("Tilemap not loaded"));
+		return status;
+	}
+
+	boardActor->init(2, 2);
+	boardActor->setDemoState();
+
+	FVector CameraLocation(15.0f, 50.0f, -15.0f);
+	FRotator CameraRotation(0.0f, 270.0f, 0.0f); // Y, Z, X for some reason
+	auto camera = GetWorld()->SpawnActor<ACameraActor>(CameraLocation, CameraRotation);
+	auto cameraComp = camera->GetCameraComponent();
+	cameraComp->ProjectionMode = ECameraProjectionMode::Orthographic;
+	cameraComp->SetOrthoWidth(250);
+
+	auto controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (controller) {
+		if (camera->HasActiveCameraComponent()) {
+			UE_LOG(LogTemp, Error, TEXT("BOARD HAS ACTIVE CAMERA COMP"));
+			controller->SetViewTarget(camera);
+			status = true;
+		}
+	}
+
 	return status;
 }
 
@@ -145,21 +158,22 @@ bool AGameLevelMode::initAllObjects() {
 	mMainMenuWidgetClass = LoadClass<UMainMenuWidget>(this, TEXT("/Game/Menus/MainMenuWidgetBP.MainMenuWidgetBP_C"));
 	mSpawnedBoard = NewObject<AGameBoardActor>(this);
 
+	mInitilized = (mMainMenuWidgetClass && mSpawnedBoard);
+
 	/// init level generator
 	/// init score manager
 	/// init game board (pop one layout from level generator)
 	/// log and return after each step
 	/// 
-	mInitilized = true;
-	return true;
+	return mInitilized;
 }
 
 void AGameLevelMode::BeginPlay()
 {
-	/*if (!initAllObjects() && !mInitilized) {
+	if (!initAllObjects()) {
 		/// log and exit
 		exit(-1);
-	}*/
+	}
 
 	setGameState(GameState::mainMenu);
 

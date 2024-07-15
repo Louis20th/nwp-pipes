@@ -33,6 +33,8 @@ public:
 private:
 	bool initAllObjects();
 	bool handleNewState();
+	bool showMainMenu();
+	bool spawnGameBoard();
 
 	TSubclassOf<AGameBoardActor> mGameBoardActorClass;
 	AGameBoardActor* mSpawnedBoard;
