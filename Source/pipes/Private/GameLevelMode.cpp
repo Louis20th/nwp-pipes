@@ -7,10 +7,11 @@
 #include "Blueprint/UserWidget.h"
 
 #include <Kismet/GameplayStatics.h>
+#include "Kismet/KismetSystemLibrary.h"
 
 AGameLevelMode::AGameLevelMode()
 	: mInitilized(false)
-	, mCurrentState(core::GameState::gameStart)
+	, mCurrentState(GameState::gameStart)
 {
 	/// Suppress spawning default pawn
 	DefaultPawnClass = nullptr;
@@ -21,18 +22,25 @@ bool AGameLevelMode::handleNewState() {
 	UE_LOG(LogTemp, Error, TEXT("Handling game state"));
 	switch (mCurrentState)
 	{
-	case core::GameState::mainMenu: {
+	case GameState::mainMenu: {
 		/// reset game session
 		/// level generator generates buffer if necessary
 		/// display mainMenu
 		/// 
-		UE_LOG(LogTemp, Error, TEXT("Case core::GameState::mainMenu"));
+		UE_LOG(LogTemp, Error, TEXT("Case(GameState::mainMenu"));
 		if (IsValid(mMainMenuWidgetClass))
 		{
 			UE_LOG(LogTemp, Error, TEXT("mMainMenuWidgetClass not nullptr"));
 			mMainMenuWidget = CreateWidget<UMainMenuWidget>(GetWorld(), mMainMenuWidgetClass);
 			if (mMainMenuWidget)
 			{
+				mMainMenuWidget->setOnStartClickedCallback([this]() {
+					setGameState(GameState::inGame);
+					});
+				mMainMenuWidget->setOnQuitClickedCallback([this]() {
+					UKismetSystemLibrary::QuitGame(GetWorld(), UGameplayStatics::GetPlayerController(GetWorld(), 0), EQuitPreference::Type::Quit, false);
+					});
+
 				UE_LOG(LogTemp, Error, TEXT("mMainMenuWidget not nullptr"));
 				mMainMenuWidget->AddToViewport(1);
 
@@ -57,15 +65,19 @@ bool AGameLevelMode::handleNewState() {
 		status = true;
 		break;
 	}
-	case core::GameState::inGame: {
+	case GameState::inGame: {
 		UE_LOG(LogTemp, Error, TEXT("case core::GameState::inGame:"));
 		/// start session
 		/// hide mainMenu
 		/// spawn gameBoard
 		/// set level
-		mMainMenuWidget->RemoveFromViewport();
+
+		if (mMainMenuWidget) {
+			mMainMenuWidget->RemoveFromParent();
+		}
 		if (!mSpawnedBoard) {
-			mSpawnedBoard = NewObject<AGameBoardActor>(this);
+			UE_LOG(LogTemp, Error, TEXT("Spawned board is nullptr"));
+			return;
 		}
 
 		FVector Location(0.0f, 0.0f, 0.0f);
@@ -96,13 +108,13 @@ bool AGameLevelMode::handleNewState() {
 		status = true;
 		break;
 	}
-	case core::GameState::pauseMenu: {
+	case GameState::pauseMenu: {
 		/// stop timers
 		/// display pauseMenu
 		status = true;
 		break;
 	}
-	case core::GameState::scoreBoard: {
+	case GameState::scoreBoard: {
 		/// hide mainMenu
 		/// display scoreBoard
 		status = true;
@@ -114,7 +126,7 @@ bool AGameLevelMode::handleNewState() {
 	return status;
 }
 
-void AGameLevelMode::setGameState(core::GameState const gameState) {
+void AGameLevelMode::setGameState(GameState const gameState) {
 	UE_LOG(LogTemp, Error, TEXT("Setting game state"));
 	mCurrentState = gameState;
 
@@ -129,6 +141,9 @@ bool AGameLevelMode::initAllObjects() {
 		/// log this, it shoudn't happen
 		return false;
 	}
+
+	mMainMenuWidgetClass = LoadClass<UMainMenuWidget>(this, TEXT("/Game/Menus/MainMenuWidgetBP.MainMenuWidgetBP_C"));
+	mSpawnedBoard = NewObject<AGameBoardActor>(this);
 
 	/// init level generator
 	/// init score manager
@@ -146,9 +161,7 @@ void AGameLevelMode::BeginPlay()
 		exit(-1);
 	}*/
 
-	mMainMenuWidgetClass = LoadClass<UMainMenuWidget>(this, TEXT("/Game/Menus/MainMenuWidgetBP.MainMenuWidgetBP_C"));
-
-	setGameState(core::GameState::mainMenu);
+	setGameState(GameState::mainMenu);
 
 	//if (mInitilized) {
 	//	FVector Location(0.0f, 0.0f, 0.0f);

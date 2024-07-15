@@ -40,5 +40,4 @@ void AGameBoardActor::setDemoState()
 		tileInfo.PackedTileIndex = i + 37;
 		tileMap->SetTile(i, i, 0, tileInfo);
 	}
-
 }

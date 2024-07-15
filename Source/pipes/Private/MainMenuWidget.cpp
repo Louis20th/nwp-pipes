@@ -4,12 +4,9 @@
 #include "MainMenuWidget.h"
 #include "Components/Button.h"
 #include "GameLevelMode.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Kismet/GameplayStatics.h"
 
 void UMainMenuWidget::NativeConstruct()
 {
-	Super::NativeConstruct();
 	if (QuitButton) {
 		QuitButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnQuitClicked);
 	}
@@ -18,13 +15,22 @@ void UMainMenuWidget::NativeConstruct()
 	}
 }
 
+void UMainMenuWidget::setOnStartClickedCallback(utils::ClickEventCallback const startCallback)
+{
+	mStartCallback = startCallback;
+}
+
+void UMainMenuWidget::setOnQuitClickedCallback(utils::ClickEventCallback const quitCallback)
+{
+	mQuitCallback = quitCallback;
+}
+
 void UMainMenuWidget::OnStartClicked()
 {
-	AGameLevelMode* gameMode = Cast<AGameLevelMode>(GetOuter());
-	gameMode->setGameState(core::GameState::inGame);
+	mStartCallback();
 }
 
 void UMainMenuWidget::OnQuitClicked()
 {
-	UKismetSystemLibrary::QuitGame(GetWorld(), UGameplayStatics::GetPlayerController(GetWorld(), 0), EQuitPreference::Type::Quit, false);
+	mQuitCallback();
 }

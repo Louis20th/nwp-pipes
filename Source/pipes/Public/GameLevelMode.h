@@ -9,7 +9,12 @@
 
 #include "GameLevelMode.generated.h"
 
-namespace core {
+
+UCLASS()
+class PIPES_API AGameLevelMode : public AGameModeBase
+{
+	GENERATED_BODY()
+
 	enum class GameState {
 		gameStart,
 		mainMenu,
@@ -17,19 +22,13 @@ namespace core {
 		pauseMenu,
 		scoreBoard
 	};
-}
-
-UCLASS()
-class PIPES_API AGameLevelMode : public AGameModeBase
-{
-	GENERATED_BODY()
 
 public:
 	AGameLevelMode();
 
 	void BeginPlay() override;
 
-	void setGameState(core::GameState const gameState);
+	void setGameState(GameState const gameState);
 
 private:
 	bool initAllObjects();
@@ -37,7 +36,7 @@ private:
 
 	TSubclassOf<AGameBoardActor> mGameBoardActorClass;
 	AGameBoardActor* mSpawnedBoard;
-	
+
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> mMainMenuWidgetClass;
 
@@ -45,6 +44,6 @@ private:
 	UMainMenuWidget* mMainMenuWidget;
 
 	bool mInitilized;
-	core::GameState mCurrentState;
+	GameState mCurrentState;
 };
 

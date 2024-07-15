@@ -11,9 +11,9 @@
 #include "GameBoardActor.generated.h"
 
 /**
- * Board actor holds the TileMap. It's created in the GameInstance.
- * 
- */
+* Board actor holds the TileMap. It's created in the GameInstance.
+*
+*/
 UCLASS()
 class PIPES_API AGameBoardActor : public APaperTileMapActor
 {
@@ -22,7 +22,7 @@ class PIPES_API AGameBoardActor : public APaperTileMapActor
 public:
 	AGameBoardActor();
 	~AGameBoardActor() = default;
-	
+
 	UFUNCTION()
 	bool init(int32 cols, int32 rows);
 

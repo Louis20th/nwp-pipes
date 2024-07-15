@@ -2,31 +2,46 @@
 
 #pragma once
 
+#include <functional>
+
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "MainMenuWidget.generated.h"
 
+namespace utils {
+	using ClickEventCallback = std::function<void(void)>;
+}
+
 /**
- * 
- */
+*
+*/
 UCLASS()
 class PIPES_API UMainMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-protected:  
-    virtual void NativeConstruct() override;
+public:
 
+	void setOnStartClickedCallback(utils::ClickEventCallback const startCallback);
 
-    UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-    class UButton* StartButton;
+	void setOnQuitClickedCallback(utils::ClickEventCallback const quitCallback);
 
-    UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-    class UButton* QuitButton;
+protected:
+	virtual void NativeConstruct() override;
 
-    UFUNCTION()
-    void OnStartClicked();
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	class UButton* StartButton;
 
-    UFUNCTION()
-    void OnQuitClicked();
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	class UButton* QuitButton;
+
+	UFUNCTION()
+	void OnStartClicked();
+
+	UFUNCTION()
+	void OnQuitClicked();
+
+private:
+	utils::ClickEventCallback mStartCallback;
+	utils::ClickEventCallback mQuitCallback;
 };
