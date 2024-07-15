@@ -26,7 +26,7 @@ bool AGameLevelMode::handleNewState() {
 		/// reset game session
 		/// level generator generates buffer if necessary
 		/// display mainMenu
- 
+
 		status = showMainMenu();
 		break;
 	}
@@ -35,8 +35,12 @@ bool AGameLevelMode::handleNewState() {
 		/// hide mainMenu
 		/// spawn gameBoard
 		/// set level
+		if (mMainMenuWidget) {
+			mMainMenuWidget->RemoveFromParent();
+		}
 
-		status = spawnGameBoard();
+		mSpawnedBoard = spawnGameBoard();
+		status = (mSpawnedBoard != nullptr);
 		break;
 	}
 	case GameState::pauseMenu: {
@@ -97,28 +101,27 @@ bool AGameLevelMode::showMainMenu()
 	return status;
 }
 
-bool AGameLevelMode::spawnGameBoard()
+AGameBoardActor* AGameLevelMode::spawnGameBoard()
 {
-	bool status(false);
-	if (mMainMenuWidget) {
-		mMainMenuWidget->RemoveFromParent();
-	}
+	AGameBoardActor* gameBoard;
+
 	if (!mSpawnedBoard) {
 		UE_LOG(LogTemp, Error, TEXT("Spawned board is nullptr"));
-		return status;
+		return nullptr;
 	}
 
 	FVector Location(0.0f, 0.0f, 0.0f);
 	FRotator Rotation(0.0f, 0.0f, 0.0f);
 	FActorSpawnParameters SpawnInfo;
-	auto boardActor = GetWorld()->SpawnActor<AGameBoardActor>(mSpawnedBoard->StaticClass(), Location, Rotation);
-	if (!boardActor) {
+	gameBoard = GetWorld()->SpawnActor<AGameBoardActor>(mSpawnedBoard->StaticClass(), Location, Rotation);
+	if (!gameBoard) {
 		UE_LOG(LogTemp, Error, TEXT("Tilemap not loaded"));
-		return status;
+		return nullptr;
 	}
 
-	boardActor->init(2, 2);
-	boardActor->setDemoState();
+	// Currently we only set a 2x2 gameBoard to test functionality
+	gameBoard->init(2, 2);
+	gameBoard->setDemoState();
 
 	FVector CameraLocation(15.0f, 50.0f, -15.0f);
 	FRotator CameraRotation(0.0f, 270.0f, 0.0f); // Y, Z, X for some reason
@@ -128,15 +131,17 @@ bool AGameLevelMode::spawnGameBoard()
 	cameraComp->SetOrthoWidth(250);
 
 	auto controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (controller) {
-		if (camera->HasActiveCameraComponent()) {
-			UE_LOG(LogTemp, Error, TEXT("BOARD HAS ACTIVE CAMERA COMP"));
-			controller->SetViewTarget(camera);
-			status = true;
-		}
+	if (controller && (camera->HasActiveCameraComponent())) {
+		FInputModeGameAndUI InputModeData;
+		controller->SetInputMode(InputModeData);
+		controller->bShowMouseCursor = true;
+		controller->SetViewTarget(camera);
+	}
+	else {
+		return nullptr;
 	}
 
-	return status;
+	return gameBoard;
 }
 
 void AGameLevelMode::setGameState(GameState const gameState) {
@@ -176,38 +181,4 @@ void AGameLevelMode::BeginPlay()
 	}
 
 	setGameState(GameState::mainMenu);
-
-	//if (mInitilized) {
-	//	FVector Location(0.0f, 0.0f, 0.0f);
-	//	FRotator Rotation(0.0f, 0.0f, 0.0f);
-	//	FActorSpawnParameters SpawnInfo;
-	//	auto boardActor = GetWorld()->SpawnActor<AGameBoardActor>(mSpawnedBoard->StaticClass(), Location, Rotation);
-	//	if (!boardActor) {
-	//		UE_LOG(LogTemp, Error, TEXT("Tilemap not loaded"));
-	//	}
-
-	//	boardActor->init(tileSet, 2, 2);
-	//	boardActor->setDemoState();
-
-	//	FVector CameraLocation(15.0f, 50.0f, -15.0f);
-	//	FRotator CameraRotation(0.0f, 270.0f, 0.0f); // Y, Z, X for some reason
-	//	auto camera = GetWorld()->SpawnActor<ACameraActor>(CameraLocation, CameraRotation);
-	//	auto cameraComp = camera->GetCameraComponent();
-	//	cameraComp->ProjectionMode = ECameraProjectionMode::Orthographic;
-	//	cameraComp->SetOrthoWidth(250);
-
-	//	auto controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	//	if (controller) {
-	//		if (camera->HasActiveCameraComponent()) {
-	//			UE_LOG(LogTemp, Error, TEXT("BOARD HAS ACTIVE CAMERA COMP"));
-	//			controller->SetViewTarget(camera);
-	//		}
-	//	}
-	//	else {
-	//		UE_LOG(LogTemp, Error, TEXT("PLAYER CONTROLLER NOT INITI"));
-	//	}
-	//}
-	//else {
-	//	UE_LOG(LogTemp, Error, TEXT("GameBoard not initialized"));
-	//}
 }

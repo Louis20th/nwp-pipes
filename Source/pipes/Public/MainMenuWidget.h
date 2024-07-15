@@ -21,9 +21,9 @@ class PIPES_API UMainMenuWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-
+	// Sets onClicked callback for StartButton
 	void setOnStartClickedCallback(utils::ClickEventCallback const startCallback);
-
+	// Sets onClicked callback for QuitButton
 	void setOnQuitClickedCallback(utils::ClickEventCallback const quitCallback);
 
 protected:

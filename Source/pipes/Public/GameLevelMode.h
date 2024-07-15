@@ -30,11 +30,24 @@ public:
 
 	void setGameState(GameState const gameState);
 
-private:
+private: 	
+	// Inits all necessary objects
+	// Returns true if successful
 	bool initAllObjects();
+
+	// Handles new state set by setGameState
+	// Returns true if successful
 	bool handleNewState();
+
+	// Adds mainMenu to Viewport
+	// Hard set at ZOrder 1
+	// Returns true if successful
 	bool showMainMenu();
-	bool spawnGameBoard();
+
+	// Spawns gameBoardActor
+	// Notice: Ensure that level is set correctly before spawning
+	// Returns newly-spawned gameBoard
+	AGameBoardActor* spawnGameBoard();
 
 	TSubclassOf<AGameBoardActor> mGameBoardActorClass;
 	AGameBoardActor* mSpawnedBoard;
