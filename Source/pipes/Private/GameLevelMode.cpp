@@ -120,15 +120,17 @@ AGameBoardActor* AGameLevelMode::spawnGameBoard()
 	}
 
 	// Currently we only set a 2x2 gameBoard to test functionality
-	gameBoard->init(2, 2);
+	if (!gameBoard->init(10, 10)) {
+		UE_LOG(LogTemp, Error, TEXT("Couldn't initialize game board"));
+	};
 	gameBoard->setDemoState();
 
-	FVector CameraLocation(15.0f, 50.0f, -15.0f);
+	FVector CameraLocation(150.0f, 75.0f, -150.0f);
 	FRotator CameraRotation(0.0f, 270.0f, 0.0f); // Y, Z, X for some reason
 	auto camera = GetWorld()->SpawnActor<ACameraActor>(CameraLocation, CameraRotation);
 	auto cameraComp = camera->GetCameraComponent();
 	cameraComp->ProjectionMode = ECameraProjectionMode::Orthographic;
-	cameraComp->SetOrthoWidth(250);
+	cameraComp->SetOrthoWidth(750);
 
 	auto controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	if (controller && (camera->HasActiveCameraComponent())) {

@@ -2,19 +2,36 @@
 
 
 #include "GameBoardActor.h"
+#include "GameLevelMode.h"
 #include "PaperTileMapComponent.h"
 #include "PaperTileMap.h"
 #include "PaperTileLayer.h"
+
 #include "Math/Color.h"
+#include <Kismet/GameplayStatics.h>
+
+void AGameBoardActor::BeginPlay()
+{
+	Super::OnClicked.AddDynamic(this, &AGameBoardActor::onCLicked);
+}
+
+void AGameBoardActor::onCLicked()
+{
+	auto controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	float x, y;
+	controller->GetMousePosition(x, y);
+	GetRenderComponent()->TileMap->GetTileCoordinatesFromLocalSpacePosition() GetTile(x, y, 0);
+
+}
 
 AGameBoardActor::AGameBoardActor()
 {
 }
 
-bool AGameBoardActor::init(int32 cols, int32 rows)
+bool AGameBoardActor::init(int32 const cols, int32 const rows)
 {
 	mTileSet = LoadObject<UPaperTileSet>(nullptr, TEXT("/Game/Tileset/pipeTilesSet.pipeTilesSet"));
-	if (mTileSet == nullptr) {
+	if (!mTileSet) {
 		return false;
 	}
 
@@ -22,7 +39,7 @@ bool AGameBoardActor::init(int32 cols, int32 rows)
 	auto tileMap = GetRenderComponent();
 
 	tileMap->CreateNewTileMap(cols, rows);
-	tileMap->SetTileMapColor(FLinearColor::White);
+	tileMap->SetLayerColor(FLinearColor::White, 0);
 
 	return true;
 }
@@ -36,8 +53,10 @@ void AGameBoardActor::setDemoState()
 
 	tileMap->GetMapSize(w, h, layers);
 
-	for (int32 i = 0; i < 2; ++i) {
-		tileInfo.PackedTileIndex = i + 37;
-		tileMap->SetTile(i, i, 0, tileInfo);
+	for (int i = 0; i < h; ++i) {
+		for (int j = 0; j < w; ++j) {
+			tileInfo.PackedTileIndex = 37;
+			tileMap->SetTile(i,j, 0, tileInfo);
+		}
 	}
 }

@@ -19,6 +19,12 @@ class PIPES_API AGameBoardActor : public APaperTileMapActor
 {
 	GENERATED_BODY()
 
+protected:
+	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void onCLicked();
+
 public:
 	AGameBoardActor();
 	~AGameBoardActor() = default;
@@ -33,5 +39,5 @@ protected:
 
 private:
 	UPaperTileSet* mTileSet;
-	UPaperTileMap* mTileMap;
+	UPaperTileMap* mTileMap; 
 };
