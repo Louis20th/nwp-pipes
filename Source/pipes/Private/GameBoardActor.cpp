@@ -6,26 +6,31 @@
 #include "PaperTileMapComponent.h"
 #include "PaperTileMap.h"
 #include "PaperTileLayer.h"
+#include "InGameMouseController.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "Components//InputComponent.h"
+
 
 #include "Math/Color.h"
 #include <Kismet/GameplayStatics.h>
 
 void AGameBoardActor::BeginPlay()
 {
-	Super::OnClicked.AddDynamic(this, &AGameBoardActor::onCLicked);
+	Super::BeginPlay();
+	// OnClicked.AddDynamic(this, &AGameBoardActor::onCLicked);
+	auto tileMapComp = GetRenderComponent();
+	tileMapComp->SetCollisionEnabled(ECollisionEnabled::QueryAndProbe);
+	tileMapComp->SetCollisionResponseToAllChannels(ECR_Block);
+	tileMapComp->SetCollisionObjectType(ECC_WorldStatic);
 }
 
-void AGameBoardActor::onCLicked()
+void AGameBoardActor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	auto controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	float x, y;
-	controller->GetMousePosition(x, y);
-	GetRenderComponent()->TileMap->GetTileCoordinatesFromLocalSpacePosition() GetTile(x, y, 0);
-
-}
-
-AGameBoardActor::AGameBoardActor()
-{
+	APawn::SetupPlayerInputComponent(PlayerInputComponent);
+	if (UEnhancedInputComponent* inputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent) {
+		inputComponent->BindAction(IA_LeftClick, ETriggerEvent::Triggered, this, )
+	}
 }
 
 bool AGameBoardActor::init(int32 const cols, int32 const rows)

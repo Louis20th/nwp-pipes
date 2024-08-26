@@ -4,6 +4,7 @@
 #include "GameLevelMode.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
+#include "InGameMouseController.h"
 #include "Blueprint/UserWidget.h"
 
 #include <Kismet/GameplayStatics.h>
@@ -15,6 +16,7 @@ AGameLevelMode::AGameLevelMode()
 {
 	/// Suppress spawning default pawn
 	DefaultPawnClass = nullptr;
+	PlayerControllerClass = AInGameMouseController::StaticClass();
 }
 
 bool AGameLevelMode::handleNewState() {
@@ -79,7 +81,7 @@ bool AGameLevelMode::showMainMenu()
 
 			mMainMenuWidget->AddToViewport(1);
 
-			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			/*APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 			if (PlayerController)
 			{
 				FInputModeUIOnly InputModeData;
@@ -88,7 +90,7 @@ bool AGameLevelMode::showMainMenu()
 				PlayerController->bShowMouseCursor = true;
 
 				status = true;
-			}
+			}*/
 		}
 		else {
 			UE_LOG(LogTemp, Error, TEXT("Main menu widget not created"));
@@ -127,17 +129,18 @@ AGameBoardActor* AGameLevelMode::spawnGameBoard()
 
 	FVector CameraLocation(150.0f, 75.0f, -150.0f);
 	FRotator CameraRotation(0.0f, 270.0f, 0.0f); // Y, Z, X for some reason
-	auto camera = GetWorld()->SpawnActor<ACameraActor>(CameraLocation, CameraRotation);
-	auto cameraComp = camera->GetCameraComponent();
-	cameraComp->ProjectionMode = ECameraProjectionMode::Orthographic;
-	cameraComp->SetOrthoWidth(750);
+	mCamera = GetWorld()->SpawnActor<ACameraActor>(CameraLocation, CameraRotation);
+	mCamera->SetOwner(this);
+	auto camera = mCamera->GetCameraComponent();
+	camera->ProjectionMode = ECameraProjectionMode::Orthographic;
+	camera->SetOrthoWidth(750);
 
 	auto controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (controller && (camera->HasActiveCameraComponent())) {
-		FInputModeGameAndUI InputModeData;
-		controller->SetInputMode(InputModeData);
+	if (controller && (mCamera->HasActiveCameraComponent())) {
+		//	//FInputModeGameAndUI InputModeData;
+		//	//controller->SetInputMode(InputModeData);
 		controller->bShowMouseCursor = true;
-		controller->SetViewTarget(camera);
+		controller->SetViewTarget(mCamera);
 	}
 	else {
 		return nullptr;

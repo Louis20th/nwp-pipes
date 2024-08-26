@@ -60,5 +60,6 @@ private:
 
 	bool mInitilized;
 	GameState mCurrentState;
+	ACameraActor* mCamera;
 };
 

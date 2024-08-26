@@ -2,15 +2,48 @@
 
 
 #include "InGameMouseController.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputActionValue.h"
+#include "GameBoardActor.h"
 
 void AInGameMouseController::BeginPlay()
 {
-	bEnableClickEvents = true;
-	bShowMouseCursor = true;
+    Super::BeginPlay();
+
+    bEnableClickEvents = true;
+    bShowMouseCursor = true;
+
 }
 
-void AInGameMouseController::SetupInputComponent()
+void AInGameMouseController::OnLeftMouseClick(const FInputActionValue& Value)
 {
-	InputComponent->BindAction("LeftClick", IE_Pressed, this, &AInGameMouseController::OnLeftMouseClick);
-	InputComponent->BindAction("RightClick", IE_Pressed, this, &AInGameMouseController::OnRightMouseClick);
+    FHitResult HitResult;
+    GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+
+    if (HitResult.GetActor())
+    {
+        // Try to cast the hit actor to your custom tile map actor
+        AGameBoardActor* TileMapActor = Cast<AGameBoardActor>(HitResult.GetActor());
+        if (TileMapActor)
+        {
+            UE_LOG(LogTemp, Error, TEXT("---------> OnLeftMouseClick()"));
+            // Handle the click on the tile map actor
+            //TileMapActor->HandleTileMapClick(HitResult.Location);
+        }
+    }
+
+    /*UE_LOG(LogTemp, Error, TEXT("---------> OnLeftMouseClick()"));
+    FHitResult HitResult;
+    GetHitResultUnderCursor(ECollisionChannel::ECC_Pawn, false, HitResult);
+
+    if (HitResult.GetComponent())
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Red, FString::Printf(TEXT("Mouse Click+++ Component: %s"), *HitResult.GetComponent()->GetName()));
+    }
+
+    if (HitResult.GetActor())
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Red, FString::Printf(TEXT("Mouse Click+++ Actor: %s"), *HitResult.GetActor()->GetName()));
+    }*/
 }

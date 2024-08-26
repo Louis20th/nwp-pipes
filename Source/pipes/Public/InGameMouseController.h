@@ -6,6 +6,10 @@
 #include "GameFramework/PlayerController.h"
 #include "InGameMouseController.generated.h"
 
+class UInputMappingContext;
+class UInputAction;
+struct FInputActionValue;
+
 /**
  * 
  */
@@ -17,11 +21,11 @@ class PIPES_API AInGameMouseController : public APlayerController
 protected:
 	virtual void BeginPlay() override;
 
-	// setup custom click bindings
-	virtual void SetupInputComponent() override;
 	
+public:
 	// handle left and right mouse clicks
 	UFUNCTION()
-	void OnLeftMouseClick();
-	void OnRightMouseClick();
+	void OnLeftMouseClick(const FInputActionValue& Value);
+	//void OnRightMouseClick();
+
 };
