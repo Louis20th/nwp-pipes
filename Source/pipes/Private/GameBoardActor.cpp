@@ -9,28 +9,49 @@
 #include "InGameMouseController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "Components//InputComponent.h"
-
 
 #include "Math/Color.h"
-#include <Kismet/GameplayStatics.h>
 
 void AGameBoardActor::BeginPlay()
 {
 	Super::BeginPlay();
-	// OnClicked.AddDynamic(this, &AGameBoardActor::onCLicked);
-	auto tileMapComp = GetRenderComponent();
-	tileMapComp->SetCollisionEnabled(ECollisionEnabled::QueryAndProbe);
-	tileMapComp->SetCollisionResponseToAllChannels(ECR_Block);
-	tileMapComp->SetCollisionObjectType(ECC_WorldStatic);
 }
 
-void AGameBoardActor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AGameBoardActor::onTileClick(const FVector& ClickLocation)
 {
-	APawn::SetupPlayerInputComponent(PlayerInputComponent);
-	if (UEnhancedInputComponent* inputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent) {
-		inputComponent->BindAction(IA_LeftClick, ETriggerEvent::Triggered, this, )
+	UPaperTileMapComponent* tileMap = GetRenderComponent();
+	if (!tileMap) {
+		return;
 	}
+
+	// Convert the world click location to tile coordinates
+	FVector clickLocation = tileMap->GetComponentTransform().InverseTransformPosition(ClickLocation);
+	const float tileWidth = tileMap->TileMap->TileWidth;
+	const float tileHeight = tileMap->TileMap->TileHeight;
+
+	FIntPoint tileCoords;
+	// GameBoard actor is placed on 0, 0, 0 but top left is -16,0,16 (half a tile??)
+	auto offset = tileWidth / 2;
+	tileCoords.X = FMath::FloorToInt((clickLocation.X + offset) / tileWidth); // it starts negative -16
+	tileCoords.Y = FMath::FloorToInt((clickLocation.Z - offset) / tileHeight * -1); // it goes to negative
+
+	FPaperTileInfo newTileInfo;
+	newTileInfo.TileSet = mTileSet;
+
+	auto tile = tileMap->GetTile(tileCoords.X, tileCoords.Y, 0);
+	if (tile.HasFlag(EPaperTileFlags::FlipVertical)) {
+		newTileInfo.PackedTileIndex = 89;
+		newTileInfo.SetFlagValue(EPaperTileFlags::FlipHorizontal, true);
+	}
+	else {
+		newTileInfo.PackedTileIndex = 64;
+		newTileInfo.SetFlagValue(EPaperTileFlags::FlipVertical, true);
+	}
+
+	tileMap->SetTile(tileCoords.X, tileCoords.Y, 0, newTileInfo);
+
+	// Update the tile map component
+	tileMap->MarkRenderStateDirty();
 }
 
 bool AGameBoardActor::init(int32 const cols, int32 const rows)
@@ -40,11 +61,12 @@ bool AGameBoardActor::init(int32 const cols, int32 const rows)
 		return false;
 	}
 
-	// ATileMapActor wraps tileMap as an render component
+	// ATileMapActor has tileMap as a render component
 	auto tileMap = GetRenderComponent();
-
 	tileMap->CreateNewTileMap(cols, rows);
-	tileMap->SetLayerColor(FLinearColor::White, 0);
+	tileMap->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	tileMap->SetCollisionResponseToAllChannels(ECR_Ignore);
+	tileMap->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
 	return true;
 }
@@ -60,8 +82,11 @@ void AGameBoardActor::setDemoState()
 
 	for (int i = 0; i < h; ++i) {
 		for (int j = 0; j < w; ++j) {
-			tileInfo.PackedTileIndex = 37;
-			tileMap->SetTile(i,j, 0, tileInfo);
+			tileInfo.PackedTileIndex = 64;
+			tileInfo.SetFlagValue(EPaperTileFlags::FlipVertical, true);
+			tileMap->SetTile(i, j, 0, tileInfo);
 		}
 	}
+
+	tileMap->RebuildCollision();
 }

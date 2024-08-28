@@ -10,40 +10,29 @@
 
 #include "GameBoardActor.generated.h"
 
-class UInputMappingContext;
-class UInputAction;
-
 /**
 * Board actor holds the TileMap. It's created in the GameInstance.
 *
 */
 UCLASS()
-class PIPES_API AGameBoardActor : public APaperTileMapActor, public APawn
+class PIPES_API AGameBoardActor : public APaperTileMapActor
 {
 	GENERATED_BODY()
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputMappingContext* InputContext;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* IA_LeftClick;
-
-	void
 
 public:
 	~AGameBoardActor() = default;
 
-	UFUNCTION()
+	void onTileClick(const FVector& ClickLocation);
+
 	bool init(int32 cols, int32 rows);
 
-	UFUNCTION()
+	// temp funct to test click handling
 	void setDemoState();
 
 private:
 	UPaperTileSet* mTileSet;
-	UPaperTileMap* mTileMap; 
+	UPaperTileMap* mTileMap;
 };
