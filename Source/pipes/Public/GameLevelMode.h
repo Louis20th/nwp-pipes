@@ -30,7 +30,7 @@ public:
 
 	void setGameState(GameState const gameState);
 
-private: 	
+private:
 	// Inits all necessary objects
 	// Returns true if successful
 	bool initAllObjects();

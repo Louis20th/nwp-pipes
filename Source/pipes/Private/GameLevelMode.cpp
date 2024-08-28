@@ -1,14 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "GameLevelMode.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
 #include "InGameMouseController.h"
 #include "Blueprint/UserWidget.h"
-
-#include <Kismet/GameplayStatics.h>
-#include "Kismet/KismetSystemLibrary.h"
 
 AGameLevelMode::AGameLevelMode()
 	: mInitilized(false)
@@ -29,7 +25,7 @@ bool AGameLevelMode::handleNewState() {
 		/// level generator generates buffer if necessary
 		/// display mainMenu
 
-		status = showMainMenu();
+		status = !!showMainMenu();
 		break;
 	}
 	case GameState::inGame: {
@@ -42,7 +38,7 @@ bool AGameLevelMode::handleNewState() {
 		}
 
 		mSpawnedBoard = spawnGameBoard();
-		status = (mSpawnedBoard != nullptr);
+		status = !!mSpawnedBoard;
 		break;
 	}
 	case GameState::pauseMenu: {
@@ -67,30 +63,18 @@ bool AGameLevelMode::showMainMenu()
 {
 	bool status(false);
 
-	if (IsValid(mMainMenuWidgetClass))
-	{
+	if (IsValid(mMainMenuWidgetClass)) {
 		mMainMenuWidget = CreateWidget<UMainMenuWidget>(GetWorld(), mMainMenuWidgetClass);
-		if (mMainMenuWidget)
-		{
+		if (mMainMenuWidget) {
 			mMainMenuWidget->setOnStartClickedCallback([this]() {
 				setGameState(GameState::inGame);
 				});
 			mMainMenuWidget->setOnQuitClickedCallback([this]() {
-				UKismetSystemLibrary::QuitGame(GetWorld(), UGameplayStatics::GetPlayerController(GetWorld(), 0), EQuitPreference::Type::Quit, false);
+				GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
 				});
 
 			mMainMenuWidget->AddToViewport(1);
-
-			/*APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-			if (PlayerController)
-			{
-				FInputModeUIOnly InputModeData;
-				InputModeData.SetWidgetToFocus(mMainMenuWidget->TakeWidget());
-				PlayerController->SetInputMode(InputModeData);
-				PlayerController->bShowMouseCursor = true;
-
-				status = true;
-			}*/
+			status = true;
 		}
 		else {
 			UE_LOG(LogTemp, Error, TEXT("Main menu widget not created"));
@@ -105,7 +89,6 @@ bool AGameLevelMode::showMainMenu()
 
 AGameBoardActor* AGameLevelMode::spawnGameBoard()
 {
-	AGameBoardActor* gameBoard;
 
 	if (!mSpawnedBoard) {
 		UE_LOG(LogTemp, Error, TEXT("Spawned board is nullptr"));
@@ -114,14 +97,15 @@ AGameBoardActor* AGameLevelMode::spawnGameBoard()
 
 	FVector Location(0.0f, 0.0f, 0.0f);
 	FRotator Rotation(0.0f, 0.0f, 0.0f);
-	FActorSpawnParameters SpawnInfo;
+
+	AGameBoardActor* gameBoard;
 	gameBoard = GetWorld()->SpawnActor<AGameBoardActor>(mSpawnedBoard->StaticClass(), Location, Rotation);
 	if (!gameBoard) {
 		UE_LOG(LogTemp, Error, TEXT("Tilemap not loaded"));
 		return nullptr;
 	}
 
-	// Currently we only set a 2x2 gameBoard to test functionality
+	// Currently we only set a 10x10 gameBoard to test functionality
 	if (!gameBoard->init(10, 10)) {
 		UE_LOG(LogTemp, Error, TEXT("Couldn't initialize game board"));
 	};
@@ -131,15 +115,13 @@ AGameBoardActor* AGameLevelMode::spawnGameBoard()
 	FRotator CameraRotation(0.0f, 270.0f, 0.0f); // Y, Z, X for some reason
 	mCamera = GetWorld()->SpawnActor<ACameraActor>(CameraLocation, CameraRotation);
 	mCamera->SetOwner(this);
+
 	auto camera = mCamera->GetCameraComponent();
 	camera->ProjectionMode = ECameraProjectionMode::Orthographic;
 	camera->SetOrthoWidth(750);
 
-	auto controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	auto controller = GetWorld()->GetFirstPlayerController();
 	if (controller && (mCamera->HasActiveCameraComponent())) {
-		//	//FInputModeGameAndUI InputModeData;
-		//	//controller->SetInputMode(InputModeData);
-		controller->bShowMouseCursor = true;
 		controller->SetViewTarget(mCamera);
 	}
 	else {
@@ -154,6 +136,8 @@ void AGameLevelMode::setGameState(GameState const gameState) {
 	mCurrentState = gameState;
 
 	if (!handleNewState()) {
+		UE_LOG(LogTemp, Error, TEXT("Failed setting state: %u"), gameState);
+		GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
 		/// log and handle error
 		return;
 	}
