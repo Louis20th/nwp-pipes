@@ -6,26 +6,30 @@
 #include "GameFramework/PlayerController.h"
 #include "InGameMouseController.generated.h"
 
-class UInputMappingContext;
-class UInputAction;
 struct FInputActionValue;
 
 /**
- * 
+ *
  */
 UCLASS()
 class PIPES_API AInGameMouseController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+public:
+	AInGameMouseController();
+
 protected:
 	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
 
-	
-public:
-	// handle left and right mouse clicks
 	UFUNCTION()
-	void OnLeftMouseClick(const FInputActionValue& Value);
-	//void OnRightMouseClick();
+	void onClick(const FInputActionValue& Value);
 
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	class UInputMappingContext* mIMContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	class UInputAction* mIAMouseClick;
 };
