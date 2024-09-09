@@ -6,6 +6,7 @@
 #include "PaperTileMapActor.h"
 #include "PaperTileSet.h"
 #include "PaperTileMap.h"
+#include "BoardLayout.h"
 #include <memory>
 
 #include "GameBoardActor.generated.h"
@@ -31,6 +32,8 @@ public:
 
 	// temp funct to test click handling
 	void setDemoState();
+
+	void spawnBoard(BoardLayout const& layout);
 
 private:
 	UPaperTileSet* mTileSet;

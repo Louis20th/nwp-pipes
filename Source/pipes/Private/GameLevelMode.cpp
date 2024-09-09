@@ -7,8 +7,10 @@
 #include "Blueprint/UserWidget.h"
 
 AGameLevelMode::AGameLevelMode()
-	: mInitilized(false)
-	, mCurrentState(GameState::gameStart)
+	: mSession()
+	, mCamera(nullptr)
+	, mCurrentState(GameState::GameStarted)
+	, mInitilized(false)
 {
 	/// Suppress spawning default pawn
 	DefaultPawnClass = nullptr;
@@ -20,7 +22,10 @@ bool AGameLevelMode::handleNewState() {
 	bool status(false);
 	switch (mCurrentState)
 	{
-	case GameState::mainMenu: {
+	case GameState::MainMenu: {
+		if (mSession.getState() != SessionState::NotStarted) {
+			mSession.setState(SessionState::NotStarted);
+		}
 		/// reset game session
 		/// level generator generates buffer if necessary
 		/// display mainMenu
@@ -28,26 +33,32 @@ bool AGameLevelMode::handleNewState() {
 		status = !!showMainMenu();
 		break;
 	}
-	case GameState::inGame: {
-		/// start session
-		/// hide mainMenu
-		/// spawn gameBoard
-		/// set level
+	case GameState::InGame: {
+		// start session
+		mSession.setState(SessionState::Started);
+		
+		// hide mainMenu
 		if (mMainMenuWidget) {
 			mMainMenuWidget->RemoveFromParent();
 		}
 
+		// set Layout
+		// TODO: std::shared_ptr<Layout> boardLayout = Layout::LayoutCreator(mSession.getDifficulty());
+
+		// spawn gameBoard from Layout
+		// TODO: should be mGameBoard.setBoard(boardLayout);
 		mSpawnedBoard = spawnGameBoard();
+
 		status = !!mSpawnedBoard;
 		break;
 	}
-	case GameState::pauseMenu: {
+	case GameState::PauseMenu: {
 		/// stop timers
 		/// display pauseMenu
 		status = true;
 		break;
 	}
-	case GameState::scoreBoard: {
+	case GameState::ScoreBoard: {
 		/// hide mainMenu
 		/// display scoreBoard
 		status = true;
@@ -67,7 +78,7 @@ bool AGameLevelMode::showMainMenu()
 		mMainMenuWidget = CreateWidget<UMainMenuWidget>(GetWorld(), mMainMenuWidgetClass);
 		if (mMainMenuWidget) {
 			mMainMenuWidget->setOnStartClickedCallback([this]() {
-				setGameState(GameState::inGame);
+				setGameState(GameState::InGame);
 				});
 			mMainMenuWidget->setOnQuitClickedCallback([this]() {
 				GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
@@ -169,5 +180,5 @@ void AGameLevelMode::BeginPlay()
 		exit(-1);
 	}
 
-	setGameState(GameState::mainMenu);
+	setGameState(GameState::MainMenu);
 }

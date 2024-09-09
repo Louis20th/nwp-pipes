@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameBoardActor.h"
 #include "MainMenuWidget.h"
+#include "PlayerSession.h"
 
 #include "GameLevelMode.generated.h"
 
@@ -15,15 +16,14 @@ class PIPES_API AGameLevelMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
-	enum class GameState {
-		gameStart,
-		mainMenu,
-		inGame,
-		pauseMenu,
-		scoreBoard
-	};
-
 public:
+	enum class GameState {
+		GameStarted,
+		MainMenu,
+		InGame,
+		PauseMenu,
+		ScoreBoard
+	};
 	AGameLevelMode();
 
 	void BeginPlay() override;
@@ -58,8 +58,9 @@ private:
 	UPROPERTY()
 	UMainMenuWidget* mMainMenuWidget;
 
-	bool mInitilized;
-	GameState mCurrentState;
+	PlayerSession mSession;
 	ACameraActor* mCamera;
+	GameState mCurrentState;
+	bool mInitilized;
 };
 
