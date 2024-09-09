@@ -2,12 +2,13 @@
 
 
 #include "BoardLayout.h"
-#include "PathGenerator"
+#include "PathGenerator.h"
 
 std::vector<TileData>& operator<<(std::vector<TileData>& layout, TileData& tileData)
 {
 	// TODO: insert return statement here
 	layout.push_back(tileData);
+	return layout;
 }
 
 BoardLayout::BoardLayout()
@@ -22,12 +23,10 @@ std::vector<TileData> const& BoardLayout::createLayout(size_t const rows, size_t
 	mLayout.clear();
 	mLayout.resize(rows * cols);
 
-	generateLandscape();
+	// generateLandscape();
 
-
-	PathGenerator generator;
-	auto winPath = generator.
-
+	
+	return mLayout;
 
 }
 
