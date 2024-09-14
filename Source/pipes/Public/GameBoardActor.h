@@ -33,9 +33,10 @@ public:
 	// temp funct to test click handling
 	void setDemoState();
 
-	void spawnBoard(BoardLayout const& layout);
+	void spawnBoard(BoardLayout& layout);
 
 private:
+	TileLayout mTileLayout;
 	UPaperTileSet* mTileSet;
 	UPaperTileMap* mTileMap;
 };

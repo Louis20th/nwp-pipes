@@ -5,14 +5,29 @@
 #include "CoreMinimal.h"
 #include "PaperTileLayer.h"
 
-struct TileData {
-	FPaperTileInfo mTileInfo;
-	double mWeight;
-	double mPotential;
-	// use additional info if necesary
+// utils
+struct TileData;
+using TileLayout = std::vector <TileData>;
+using TilePosition = std::pair<size_t, size_t>;
+TileLayout& operator<<(TileLayout& layout, TileData& tileData);
+bool operator==(TilePosition const& lhs, TilePosition const& rhs);
+
+
+enum TileState
+{
+	Initialized,
+	Visited,
+	Set
 };
 
-std::vector<TileData>& operator<<(std::vector<TileData>& layout, TileData& tileData);
+struct TileData {
+	FPaperTileInfo mTileInfo;
+	TilePosition mPosition;
+	uint32 mWeight;
+	uint32 f, g, h;
+	bool mStartEnd;
+	bool mFrame;
+};
 
 /**
  * This class handles layout generation.
@@ -25,15 +40,17 @@ class PIPES_API BoardLayout
 public:
 	BoardLayout();
 	~BoardLayout() = default;
-
-	std::vector<TileData> const& createLayout(size_t const rows, size_t const cols);
+	TileLayout createLayout(size_t const rows, size_t const cols);
 
 private:
+	uint32 manhattanScore(TilePosition const& curr, TilePosition const& end);
+	std::vector<TileData*> getNeighbours(TileData& current);
 	void generateLandscape();
+	void generatePath(TilePosition const& start, TilePosition const& end);
 
 
-
-	std::vector<TileData> mLayout;
-
+	TileLayout mLayout;
+	size_t mMaxRows;
+	size_t mMaxCols;
 };
 

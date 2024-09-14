@@ -39,13 +39,28 @@ void AGameBoardActor::onTileClick(const FVector& ClickLocation)
 	newTileInfo.TileSet = mTileSet;
 
 	auto tile = tileMap->GetTile(tileCoords.X, tileCoords.Y, 0);
-	if (tile.HasFlag(EPaperTileFlags::FlipVertical)) {
-		newTileInfo.PackedTileIndex = 89;
-		newTileInfo.SetFlagValue(EPaperTileFlags::FlipHorizontal, true);
-	}
-	else {
+	switch (tile.PackedTileIndex)
+	{
+	case 89:
 		newTileInfo.PackedTileIndex = 64;
-		newTileInfo.SetFlagValue(EPaperTileFlags::FlipVertical, true);
+		break;
+	case 64:
+		newTileInfo.PackedTileIndex = 89;
+		break;
+	case 63:
+		newTileInfo.PackedTileIndex = 88;
+		break;
+	case 88:
+		newTileInfo.PackedTileIndex = 87;
+		break;
+	case 87:
+		newTileInfo.PackedTileIndex = 62;
+		break;
+	case 62:
+		newTileInfo.PackedTileIndex = 63;
+		break;
+	default:
+		break;
 	}
 
 	tileMap->SetTile(tileCoords.X, tileCoords.Y, 0, newTileInfo);
@@ -88,5 +103,24 @@ void AGameBoardActor::setDemoState()
 		}
 	}
 
+	tileMap->RebuildCollision();
+}
+
+void AGameBoardActor::spawnBoard(BoardLayout& layout)
+{
+	auto tileMap = GetRenderComponent();
+	int32 w, h, layers;
+	tileMap->GetMapSize(w, h, layers);
+
+	mTileLayout = layout.createLayout(w, h);
+	for (auto& it : mTileLayout) {
+		if (it.mFrame) {
+			it.mTileInfo.TileSet = LoadObject<UPaperTileSet>(nullptr, TEXT("/Game/Tileset/Bricks_TileSet.Bricks_TileSet"));
+		}
+		else {
+			it.mTileInfo.TileSet = mTileSet;
+		}
+		tileMap->SetTile(static_cast<int>(it.mPosition.first), static_cast<int>(it.mPosition.second), 0, it.mTileInfo);
+	}
 	tileMap->RebuildCollision();
 }

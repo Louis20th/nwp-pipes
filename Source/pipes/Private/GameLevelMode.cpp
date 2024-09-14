@@ -4,6 +4,7 @@
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
 #include "InGameMouseController.h"
+#include "BoardLayout.h"
 #include "Blueprint/UserWidget.h"
 
 AGameLevelMode::AGameLevelMode()
@@ -36,7 +37,7 @@ bool AGameLevelMode::handleNewState() {
 	case GameState::InGame: {
 		// start session
 		mSession.setState(SessionState::Started);
-		
+
 		// hide mainMenu
 		if (mMainMenuWidget) {
 			mMainMenuWidget->RemoveFromParent();
@@ -117,10 +118,12 @@ AGameBoardActor* AGameLevelMode::spawnGameBoard()
 	}
 
 	// Currently we only set a 10x10 gameBoard to test functionality
-	if (!gameBoard->init(10, 10)) {
+	if (!gameBoard->init(11, 11)) {
 		UE_LOG(LogTemp, Error, TEXT("Couldn't initialize game board"));
 	};
-	gameBoard->setDemoState();
+
+	BoardLayout newLayout;
+	gameBoard->spawnBoard(newLayout);
 
 	FVector CameraLocation(150.0f, 75.0f, -150.0f);
 	FRotator CameraRotation(0.0f, 270.0f, 0.0f); // Y, Z, X for some reason
