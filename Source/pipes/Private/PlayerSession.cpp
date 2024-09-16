@@ -21,9 +21,9 @@ const SessionState& PlayerSession::getState() const
 	return mSessionState;
 }
 
-void PlayerSession::updateScore()
+void PlayerSession::updateScore(size_t const pathLenght)
 {
-	// pass for now
+	mScore += pathLenght;
 }
 
 uint32 PlayerSession::getScore() const

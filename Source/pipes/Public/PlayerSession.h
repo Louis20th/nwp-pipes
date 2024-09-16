@@ -26,7 +26,7 @@ public:
 	void setState(const SessionState newwState);
 	const SessionState& getState() const;
 
-	void updateScore(/*void for now, but should get level state to calculate*/);
+	void updateScore(size_t const pathLenght);
 	uint32 getScore() const;
 
 

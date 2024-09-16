@@ -174,8 +174,11 @@ bool AGameLevelMode::startCountdown()
 void AGameLevelMode::chaserTick()
 {
 	auto status = mChaser.nextMove();
-	UE_LOG(LogTemp, Error, TEXT("status: %u"), status);
 	if (status == ChaseStatus::Lost || status == ChaseStatus::Won) {
+		GetWorld()->GetTimerManager().ClearTimer(mChaserTimerHandle);
+		if (status == ChaseStatus::Won) {
+			mSession.updateScore(mChaser.getPathLenght());
+		}
 		GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
 	}
 	mSpawnedBoard->changeColor(mChaser.getCurrPosition());

@@ -52,6 +52,11 @@ TilePosition Chaser::getCurrPosition() const
 	return mCurrent.mPosition;
 }
 
+size_t Chaser::getPathLenght() const
+{
+	return mVisited.size();
+}
+
 
 TileData& Chaser::getNext()
 {

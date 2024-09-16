@@ -27,6 +27,7 @@ public:
 	void StartChasing();
 	ChaseStatus nextMove();
 	TilePosition getCurrPosition() const;
+	size_t getPathLenght() const;
 
 private:
 	TileData& getNext();
