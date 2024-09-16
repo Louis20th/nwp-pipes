@@ -6,7 +6,9 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameBoardActor.h"
 #include "MainMenuWidget.h"
+#include "CountdownTimerWidget.h"
 #include "PlayerSession.h"
+#include "Chaser.h"
 
 #include "GameLevelMode.generated.h"
 
@@ -20,7 +22,8 @@ public:
 	enum class GameState {
 		GameStarted,
 		MainMenu,
-		InGame,
+		Countdown,
+		Chasing,
 		PauseMenu,
 		ScoreBoard
 	};
@@ -49,18 +52,31 @@ private:
 	// Returns newly-spawned gameBoard
 	AGameBoardActor* spawnGameBoard();
 
+	bool startCountdown();
+
+	void chaserTick();
+
 	TSubclassOf<AGameBoardActor> mGameBoardActorClass;
 	AGameBoardActor* mSpawnedBoard;
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> mMainMenuWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> mCountdownWidgetClass;
+
 	UPROPERTY()
 	UMainMenuWidget* mMainMenuWidget;
+
+	UPROPERTY()
+	UCountdownTimerWidget* mCountdownWidget;
+
+	FTimerHandle mChaserTimerHandle;
 
 	PlayerSession mSession;
 	ACameraActor* mCamera;
 	GameState mCurrentState;
+	Chaser mChaser;
 	bool mInitilized;
 };
 

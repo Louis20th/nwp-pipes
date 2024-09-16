@@ -63,6 +63,9 @@ void AGameBoardActor::onTileClick(const FVector& ClickLocation)
 		break;
 	}
 
+	int32 w, h, layers;
+	tileMap->GetMapSize(w, h, layers);
+	mTileLayout[tileCoords.Y * w + tileCoords.X].mTileInfo.PackedTileIndex = newTileInfo.PackedTileIndex;
 	tileMap->SetTile(tileCoords.X, tileCoords.Y, 0, newTileInfo);
 
 	// Update the tile map component
@@ -86,41 +89,64 @@ bool AGameBoardActor::init(int32 const cols, int32 const rows)
 	return true;
 }
 
-void AGameBoardActor::setDemoState()
-{
-	FPaperTileInfo tileInfo;
-	tileInfo.TileSet = mTileSet;
-	int32 w, h, layers;
-	auto tileMap = GetRenderComponent();
-
-	tileMap->GetMapSize(w, h, layers);
-
-	for (int i = 0; i < h; ++i) {
-		for (int j = 0; j < w; ++j) {
-			tileInfo.PackedTileIndex = 64;
-			tileInfo.SetFlagValue(EPaperTileFlags::FlipVertical, true);
-			tileMap->SetTile(i, j, 0, tileInfo);
-		}
-	}
-
-	tileMap->RebuildCollision();
-}
-
 void AGameBoardActor::spawnBoard(BoardLayout& layout)
 {
 	auto tileMap = GetRenderComponent();
 	int32 w, h, layers;
 	tileMap->GetMapSize(w, h, layers);
 
+	auto brickTileset = LoadObject<UPaperTileSet>(nullptr, TEXT("/Game/Tileset/Bricks_TileSet.Bricks_TileSet"));
+
 	mTileLayout = layout.createLayout(w, h);
 	for (auto& it : mTileLayout) {
-		if (it.mFrame) {
-			it.mTileInfo.TileSet = LoadObject<UPaperTileSet>(nullptr, TEXT("/Game/Tileset/Bricks_TileSet.Bricks_TileSet"));
+		if (it.mType == TileType::Frame) {
+			it.mTileInfo.TileSet = brickTileset;
 		}
 		else {
 			it.mTileInfo.TileSet = mTileSet;
 		}
 		tileMap->SetTile(static_cast<int>(it.mPosition.first), static_cast<int>(it.mPosition.second), 0, it.mTileInfo);
 	}
+	tileMap->RebuildCollision();
+}
+
+TileLayout* AGameBoardActor::getLayout()
+{
+	return &mTileLayout;
+}
+
+void AGameBoardActor::changeColor(TilePosition const& position)
+{
+	auto tileMap = GetRenderComponent();
+	auto tile = tileMap->GetTile(static_cast<int>(position.first), static_cast<int>(position.second), 0);
+	switch (tile.PackedTileIndex)
+	{
+	case 62:
+		tile.PackedTileIndex = 57;
+		break;
+	case 63:
+		tile.PackedTileIndex = 58;
+		break;
+	case 64:
+		tile.PackedTileIndex = 59;
+		break;
+	case 87:
+		tile.PackedTileIndex = 82;
+		break;
+	case 88:
+		tile.PackedTileIndex = 83;
+		break;
+	case 89:
+		tile.PackedTileIndex = 84;
+		break;
+	}
+	int32 w, h, layers;
+	tileMap->GetMapSize(w, h, layers);
+
+	tile.TileSet = mTileSet;
+	tileMap->SetTile(static_cast<int>(position.first), static_cast<int>(position.second), 0, tile);
+	mTileLayout[(position.second * w) + position.first].mPosition = position;
+	mTileLayout[(position.second * w) + position.first].mTileInfo = tile;
+	tileMap->MarkRenderStateDirty();
 	tileMap->RebuildCollision();
 }

@@ -27,13 +27,10 @@ public:
 	~AGameBoardActor() = default;
 
 	void onTileClick(const FVector& ClickLocation);
-
-	bool init(int32 cols, int32 rows);
-
-	// temp funct to test click handling
-	void setDemoState();
-
+	bool init(int32 const cols, int32 const rows);
 	void spawnBoard(BoardLayout& layout);
+	TileLayout* getLayout();
+	void changeColor(TilePosition const& position);
 
 private:
 	TileLayout mTileLayout;

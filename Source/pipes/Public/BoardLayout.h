@@ -12,21 +12,20 @@ using TilePosition = std::pair<size_t, size_t>;
 TileLayout& operator<<(TileLayout& layout, TileData& tileData);
 bool operator==(TilePosition const& lhs, TilePosition const& rhs);
 
-
-enum TileState
+enum TileType
 {
-	Initialized,
-	Visited,
-	Set
+	Start,
+	Stop,
+	Frame,
+	Field
 };
 
 struct TileData {
 	FPaperTileInfo mTileInfo;
 	TilePosition mPosition;
+	TileType mType;
 	uint32 mWeight;
 	uint32 f, g, h;
-	bool mStartEnd;
-	bool mFrame;
 };
 
 /**

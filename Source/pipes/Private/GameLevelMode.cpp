@@ -11,6 +11,7 @@ AGameLevelMode::AGameLevelMode()
 	: mSession()
 	, mCamera(nullptr)
 	, mCurrentState(GameState::GameStarted)
+	, mChaser()
 	, mInitilized(false)
 {
 	/// Suppress spawning default pawn
@@ -34,7 +35,7 @@ bool AGameLevelMode::handleNewState() {
 		status = !!showMainMenu();
 		break;
 	}
-	case GameState::InGame: {
+	case GameState::Countdown: {
 		// start session
 		mSession.setState(SessionState::Started);
 
@@ -43,15 +44,17 @@ bool AGameLevelMode::handleNewState() {
 			mMainMenuWidget->RemoveFromParent();
 		}
 
-		// set Layout
-		// TODO: std::shared_ptr<Layout> boardLayout = Layout::LayoutCreator(mSession.getDifficulty());
-
-		// spawn gameBoard from Layout
-		// TODO: should be mGameBoard.setBoard(boardLayout);
+		// spawn gameboard
 		mSpawnedBoard = spawnGameBoard();
 
-		status = !!mSpawnedBoard;
+		status = mSpawnedBoard && startCountdown();
 		break;
+	}
+	case GameState::Chasing: {
+		mChaser.init(mSpawnedBoard->getLayout());
+		mChaser.StartChasing();
+
+		GetWorld()->GetTimerManager().SetTimer(mChaserTimerHandle, this, &AGameLevelMode::chaserTick, 1.0f, true);
 	}
 	case GameState::PauseMenu: {
 		/// stop timers
@@ -79,7 +82,7 @@ bool AGameLevelMode::showMainMenu()
 		mMainMenuWidget = CreateWidget<UMainMenuWidget>(GetWorld(), mMainMenuWidgetClass);
 		if (mMainMenuWidget) {
 			mMainMenuWidget->setOnStartClickedCallback([this]() {
-				setGameState(GameState::InGame);
+				setGameState(GameState::Countdown);
 				});
 			mMainMenuWidget->setOnQuitClickedCallback([this]() {
 				GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
@@ -117,22 +120,25 @@ AGameBoardActor* AGameLevelMode::spawnGameBoard()
 		return nullptr;
 	}
 
-	// Currently we only set a 10x10 gameBoard to test functionality
-	if (!gameBoard->init(11, 11)) {
+	int boardHeight(12);
+	int boardWidth(12);
+
+	// set the size of the game board
+	if (!gameBoard->init(boardHeight, boardWidth)) {
 		UE_LOG(LogTemp, Error, TEXT("Couldn't initialize game board"));
 	};
 
 	BoardLayout newLayout;
 	gameBoard->spawnBoard(newLayout);
 
-	FVector CameraLocation(150.0f, 75.0f, -150.0f);
+	FVector CameraLocation(boardWidth * 12.5f, boardWidth * 7.5f, boardHeight * -15.0f);
 	FRotator CameraRotation(0.0f, 270.0f, 0.0f); // Y, Z, X for some reason
 	mCamera = GetWorld()->SpawnActor<ACameraActor>(CameraLocation, CameraRotation);
 	mCamera->SetOwner(this);
 
 	auto camera = mCamera->GetCameraComponent();
 	camera->ProjectionMode = ECameraProjectionMode::Orthographic;
-	camera->SetOrthoWidth(750);
+	camera->SetOrthoWidth(boardWidth * 75);
 
 	auto controller = GetWorld()->GetFirstPlayerController();
 	if (controller && (mCamera->HasActiveCameraComponent())) {
@@ -141,8 +147,38 @@ AGameBoardActor* AGameLevelMode::spawnGameBoard()
 	else {
 		return nullptr;
 	}
-
 	return gameBoard;
+}
+
+bool AGameLevelMode::startCountdown()
+{
+	bool status(false);
+
+	if (IsValid(mCountdownWidgetClass)) {
+		mCountdownWidget = CreateWidget<UCountdownTimerWidget>(GetWorld(), mCountdownWidgetClass);
+		if (mCountdownWidget) {
+			mCountdownWidget->AddToViewport(1);
+			mCountdownWidget->startCountdown(5);
+			status = true;
+		}
+		else {
+			UE_LOG(LogTemp, Error, TEXT("Countdown widget not created"));
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("mCountdownWidgetClass is nullptr"));
+	}
+	return status;
+}
+
+void AGameLevelMode::chaserTick()
+{
+	auto status = mChaser.nextMove();
+	UE_LOG(LogTemp, Error, TEXT("status: %u"), status);
+	if (status == ChaseStatus::Lost || status == ChaseStatus::Won) {
+		GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
+	}
+	mSpawnedBoard->changeColor(mChaser.getCurrPosition());
 }
 
 void AGameLevelMode::setGameState(GameState const gameState) {
@@ -150,7 +186,6 @@ void AGameLevelMode::setGameState(GameState const gameState) {
 	mCurrentState = gameState;
 
 	if (!handleNewState()) {
-		UE_LOG(LogTemp, Error, TEXT("Failed setting state: %u"), gameState);
 		GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
 		/// log and handle error
 		return;
@@ -164,6 +199,7 @@ bool AGameLevelMode::initAllObjects() {
 	}
 
 	mMainMenuWidgetClass = LoadClass<UMainMenuWidget>(this, TEXT("/Game/Menus/MainMenuWidgetBP.MainMenuWidgetBP_C"));
+	mCountdownWidgetClass = LoadClass<UCountdownTimerWidget>(this, TEXT("/Game/Menus/CountdownWidget.CountdownWidget_C"));
 	mSpawnedBoard = NewObject<AGameBoardActor>(this);
 
 	mInitilized = (mMainMenuWidgetClass && mSpawnedBoard);

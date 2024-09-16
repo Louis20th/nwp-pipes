@@ -68,19 +68,25 @@ void BoardLayout::generateLandscape()
 				newTile.mWeight = std::rand() % 1000;
 
 				// give it a bit of flair
-				if (newTile.mWeight % 6 == 0) {
+				if (newTile.mWeight % 5 == 0) {
+					newTile.mWeight *= 2U;
+				}
+				if (newTile.mWeight % 7 == 0) {
 					newTile.mWeight *= 4U;
 				}
 				if (newTile.mWeight % 11 == 0) {
 					newTile.mWeight *= 8U;
 				}
+				if (newTile.mWeight % 17 == 0) {
+					newTile.mWeight = 1U;
+				}
 				newTile.g = UINT32_MAX;
 				newTile.f = UINT32_MAX;
-				newTile.mFrame = false;
+				newTile.mType = TileType::Field;
 			}
 			else {
-				newTile.mFrame = true;
-				newTile.mTileInfo.PackedTileIndex = 3;
+				newTile.mType = TileType::Frame;
+				newTile.mTileInfo.PackedTileIndex = 0;
 			}
 			newTile.mPosition = TilePosition(x, y);
 			mLayout << newTile;
@@ -106,6 +112,11 @@ void BoardLayout::generatePath(TilePosition const& start, TilePosition const& en
 	std::map<TilePosition, TilePosition> parentMap;
 	std::set<TilePosition> openListSet;
 
+	mLayout[start.second * mMaxCols].mTileInfo.PackedTileIndex = 354; // green start tile
+	mLayout[start.second * mMaxCols].mType = TileType::Start;
+	mLayout[end.second * mMaxCols + end.first].mTileInfo.PackedTileIndex = 364; // red stop tile
+	mLayout[end.second * mMaxCols + end.first].mType = TileType::Stop;
+
 	auto startTile = mLayout[start.second * mMaxCols + (start.first + 1U)];
 	auto endTile = mLayout[end.second * mMaxCols + (end.first - 1U)];
 	Node startNode(startTile);
@@ -130,20 +141,15 @@ void BoardLayout::generatePath(TilePosition const& start, TilePosition const& en
 			for (size_t i = 0U; i < res.size(); i++) {
 				if ((i > 0U) && (i < (res.size() - 1U))) {
 					if ((res[i - 1U]->mPosition.first != res[i + 1U]->mPosition.first) && (res[i - 1U]->mPosition.second != res[i + 1U]->mPosition.second)) {
-						res[i]->mTileInfo.PackedTileIndex = 63;
+						int allowed[] = { 62, 63, 87, 88 };
+						res[i]->mTileInfo.PackedTileIndex = allowed[std::rand() % 4];
 					}
 					else {
-						res[i]->mTileInfo.PackedTileIndex = 89;
+						int allowed[] = { 64, 89 };
+						res[i]->mTileInfo.PackedTileIndex = allowed[std::rand() % 2];
 					}
 				}
 			}
-			mLayout[start.second * mMaxCols].mTileInfo.PackedTileIndex = 64;
-			mLayout[start.second * mMaxCols].mStartEnd = true;
-			mLayout[start.second * mMaxCols].mFrame = false;
-			mLayout[end.second * mMaxCols + end.first].mTileInfo.PackedTileIndex = 64;
-			mLayout[end.second * mMaxCols + end.first].mStartEnd = true;
-			mLayout[end.second * mMaxCols + end.first].mFrame = false;
-
 			return;
 		}
 
@@ -171,8 +177,6 @@ void BoardLayout::generatePath(TilePosition const& start, TilePosition const& en
 			}
 		}
 	}
-
-
 }
 
 BoardLayout::BoardLayout()
@@ -191,18 +195,13 @@ TileLayout BoardLayout::createLayout(size_t const rows, size_t const cols)
 	mMaxRows = rows;
 	mMaxCols = cols;
 
-	// mLayout.resize(mMaxRows * mMaxCols);
-
-	// TODO: insert return statement here
 	TilePosition start(0U, (std::rand() % (mMaxRows - 2U)) + 1U);
 	TilePosition end(mMaxCols - 1U, (std::rand() % (mMaxRows - 2U)) + 1U);
 
 	generateLandscape();
 	generatePath(start, end);
 
-
-	return mLayout;
-
+	return std::move(mLayout);
 }
 
 
