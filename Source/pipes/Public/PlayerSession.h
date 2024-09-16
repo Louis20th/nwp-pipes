@@ -5,15 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameDifficulty.h"
 
-enum class SessionState
-{
-	NotStarted,
-	Started,
-	InProgress,
-	Ended,
-	Paused // not used yet
-};
-
 /**
  * 
  */
@@ -23,15 +14,26 @@ public:
 	PlayerSession();
 	~PlayerSession() = default;
 
-	void setState(const SessionState newwState);
-	const SessionState& getState() const;
+	void startSession();
+	void onWin();
 
-	void updateScore(size_t const pathLenght);
 	uint32 getScore() const;
-
+	void updateScore(size_t const pathLenght);
+	float getOverflowSpeed() const;
+	float getCountdownAmount() const;
 
 private:
-	SessionState mSessionState;
+
+	struct Difficulty {
+		float mCoundown;
+		float mOverflowSpeed;
+		uint32 mStreak;
+
+		void onSuccess();
+		void reset();
+	};
+
+	Difficulty mDifficulty;
 	uint32 mScore;
 
 };
