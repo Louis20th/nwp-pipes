@@ -16,7 +16,6 @@ class PIPES_API UCountdownTimerWidget : public UUserWidget
 
 public:
 	void startCountdown(int const time);
-	void setParent(AGameModeBase*);
 protected:
 	virtual void NativeConstruct() override;
 
