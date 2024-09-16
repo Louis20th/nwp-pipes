@@ -74,19 +74,19 @@ void AGameBoardActor::onTileClick(const FVector& ClickLocation)
 
 bool AGameBoardActor::init(int32 const cols, int32 const rows)
 {
+	mInitialized = false;
 	mTileSet = LoadObject<UPaperTileSet>(nullptr, TEXT("/Game/Tileset/pipeTilesSet.pipeTilesSet"));
-	if (!mTileSet) {
-		return false;
+	if (mTileSet) {
+		// ATileMapActor has tileMap as a render component
+		auto tileMap = GetRenderComponent();
+		tileMap->CreateNewTileMap(cols, rows);
+		tileMap->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		tileMap->SetCollisionResponseToAllChannels(ECR_Ignore);
+		tileMap->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+		mInitialized = true;
 	}
 
-	// ATileMapActor has tileMap as a render component
-	auto tileMap = GetRenderComponent();
-	tileMap->CreateNewTileMap(cols, rows);
-	tileMap->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	tileMap->SetCollisionResponseToAllChannels(ECR_Ignore);
-	tileMap->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
-
-	return true;
+	return mInitialized;
 }
 
 void AGameBoardActor::spawnBoard(BoardLayout& layout)
@@ -108,6 +108,7 @@ void AGameBoardActor::spawnBoard(BoardLayout& layout)
 		tileMap->SetTile(static_cast<int>(it.mPosition.first), static_cast<int>(it.mPosition.second), 0, it.mTileInfo);
 	}
 	tileMap->RebuildCollision();
+	tileMap->MarkRenderStateDirty();
 }
 
 TileLayout* AGameBoardActor::getLayout()
@@ -149,4 +150,9 @@ void AGameBoardActor::changeColor(TilePosition const& position)
 	mTileLayout[(position.second * w) + position.first].mTileInfo = tile;
 	tileMap->MarkRenderStateDirty();
 	tileMap->RebuildCollision();
+}
+
+bool AGameBoardActor::isInitialized() const
+{
+	return mInitialized;
 }

@@ -31,9 +31,11 @@ public:
 	void spawnBoard(BoardLayout& layout);
 	TileLayout* getLayout();
 	void changeColor(TilePosition const& position);
+	bool isInitialized() const;
 
 private:
 	TileLayout mTileLayout;
 	UPaperTileSet* mTileSet;
 	UPaperTileMap* mTileMap;
+	bool mInitialized;
 };
