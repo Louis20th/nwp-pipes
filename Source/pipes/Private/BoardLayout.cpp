@@ -12,7 +12,6 @@
 
 TileLayout& operator<<(TileLayout& layout, TileData& tileData)
 {
-	// TODO: insert return statement here
 	layout.push_back(std::move(tileData));
 	return layout;
 }
@@ -62,8 +61,12 @@ void BoardLayout::generateLandscape()
 	for (size_t y = 0; y < mMaxRows; ++y) {
 		for (size_t x = 0; x < mMaxCols; ++x) {
 			TileData newTile;
-			if ((x > 0 && y > 0) && (x < (mMaxCols - 1U) && (y < (mMaxRows - 1U))))
+			if ((x == 0 || x == (mMaxCols - 1U)) || (y == 0 || y == (mMaxRows - 1U)))
 			{
+				newTile.mTileInfo.PackedTileIndex = 0;
+				newTile.mType = TileType::Frame;
+			}
+			else {
 				newTile.mTileInfo.PackedTileIndex = allowed[std::rand() % 6];
 				newTile.mWeight = std::rand() % 1000;
 
@@ -83,10 +86,6 @@ void BoardLayout::generateLandscape()
 				newTile.g = UINT32_MAX;
 				newTile.f = UINT32_MAX;
 				newTile.mType = TileType::Field;
-			}
-			else {
-				newTile.mType = TileType::Frame;
-				newTile.mTileInfo.PackedTileIndex = 0;
 			}
 			newTile.mPosition = TilePosition(x, y);
 			mLayout << newTile;
