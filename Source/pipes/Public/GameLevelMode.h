@@ -7,6 +7,7 @@
 #include "GameBoardActor.h"
 #include "MainMenuWidget.h"
 #include "CountdownTimerWidget.h"
+#include "PostGameWidget.h"
 #include "PlayerSession.h"
 #include "Chaser.h"
 
@@ -24,7 +25,7 @@ public:
 		MainMenu,
 		Countdown,
 		Chasing,
-		PauseMenu,
+		PostGameMenu,
 		ScoreBoard
 	};
 	AGameLevelMode();
@@ -65,11 +66,17 @@ private:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> mCountdownWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> mPostGameWidgetClass;
+
 	UPROPERTY()
 	UMainMenuWidget* mMainMenuWidget;
 
 	UPROPERTY()
 	UCountdownTimerWidget* mCountdownWidget;
+
+	UPROPERTY()
+	UPostGameWidget* mPostGameWidget;
 
 	FTimerHandle mChaserTimerHandle;
 
