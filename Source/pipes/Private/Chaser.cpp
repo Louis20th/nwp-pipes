@@ -114,17 +114,9 @@ TileData& Chaser::getNext()
 
 bool Chaser::isNextConnected()
 {
-    UE_LOG(LogTemp, Error, TEXT("Current: %u"), mCurrent.mTileInfo.PackedTileIndex);
-    UE_LOG(LogTemp, Error, TEXT("Next: %u"), mNext.mTileInfo.PackedTileIndex);
     bool toRight = mCurrent.mPosition.first < mNext.mPosition.first;
     bool toUp = mCurrent.mPosition.second > mNext.mPosition.second;
-    if (toUp) {
-        UE_LOG(LogTemp, Error, TEXT("Go up"));
-    } else { UE_LOG(LogTemp, Error, TEXT("Go down")); }
-    if (toRight) {
-        UE_LOG(LogTemp, Error, TEXT("Go right"));
-    }
-    else { UE_LOG(LogTemp, Error, TEXT("Go left")); }
+
     std::set<int> possible({ 0 });
     if (mCurrent.mType != TileType::Start)
     {

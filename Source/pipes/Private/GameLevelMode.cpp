@@ -20,8 +20,8 @@ AGameLevelMode::AGameLevelMode()
 }
 
 bool AGameLevelMode::handleNewState() {
-    UE_LOG(LogTemp, Error, TEXT("Handling game state"));
     bool status(false);
+
     switch (mCurrentState)
     {
     case GameState::MainMenu: {
@@ -29,9 +29,6 @@ bool AGameLevelMode::handleNewState() {
         mCountdownWidget->SetVisibility(ESlateVisibility::Hidden);
 
         mSession.startSession();
-        /// reset game session
-        /// level generator generates buffer if necessary
-        /// display mainMenu
 
         status = !!showMainMenu();
         mMainMenuWidget->SetVisibility(ESlateVisibility::Visible);
@@ -60,17 +57,16 @@ bool AGameLevelMode::handleNewState() {
     case GameState::PostGameMenu: {
         mSpawnedBoard->Destroy();
         mCamera->Destroy();
+
         mPostGameWidget->SetVisibility(ESlateVisibility::Visible);
         mPostGameWidget->AddToViewport();
         mCountdownWidget->SetVisibility(ESlateVisibility::Hidden);
-        /// stop timers
-        /// display pauseMenu
+
         status = true;
         break;
     }
     case GameState::ScoreBoard: {
-        /// hide mainMenu
-        /// display scoreBoard
+        /// not implemented
         status = true;
         break;
     }
@@ -187,14 +183,14 @@ void AGameLevelMode::setGameState(GameState const gameState) {
 
     if (!handleNewState()) {
         GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
-        /// log and handle error
+        
         return;
     }
 }
 
 bool AGameLevelMode::initAllObjects() {
     if (mInitilized) {
-        /// log this, it shoudn't happen
+        
         return false;
     }
 
@@ -212,7 +208,7 @@ bool AGameLevelMode::initAllObjects() {
     }
 
     mSpawnedBoard = NewObject<AGameBoardActor>(this);
-    mInitilized = (mMainMenuWidgetClass && mSpawnedBoard);
+    mInitilized = (mMainMenuWidgetClass && mCountdownWidgetClass && mPostGameWidgetClass && mSpawnedBoard);
     return mInitilized;
 }
 

@@ -56,7 +56,6 @@ std::vector<TileData*> BoardLayout::getNeighbours(TileData& current)
 
 void BoardLayout::generateLandscape()
 {
-	UE_LOG(LogTemp, Error, TEXT("-----------------> generateLandscape"));
 	int allowed[] = { 62, 63, 64, 87, 88, 89 };
 	for (size_t y = 0; y < mMaxRows; ++y) {
 		for (size_t x = 0; x < mMaxCols; ++x) {
@@ -96,7 +95,6 @@ void BoardLayout::generateLandscape()
 
 void BoardLayout::generatePath(TilePosition const& start, TilePosition const& end)
 {
-	UE_LOG(LogTemp, Error, TEXT("-----------------> generatePath"));
 	struct Node {
 		TileData mTileData;
 		Node(TileData& tileData) : mTileData(tileData) {

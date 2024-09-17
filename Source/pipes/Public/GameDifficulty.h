@@ -16,7 +16,4 @@ public:
 private:
 	// countdown timer value in ms
 	uint32 mCountdown;
-
-	// number of pass points to generate path through
-	uint8 mPassPoints;
 };
